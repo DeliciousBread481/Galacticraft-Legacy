@@ -21,22 +21,51 @@ repositories {
         name 'galacticraft'
         url 'https://maven.galacticraft.net/repository/legacy-common/'
     }
+    // CurseForge Maven
+    maven {  
+        name 'cursemaven'  
+        url 'https://cursemaven.com'  
+    }  
+      
+    // Mekanism  
+    maven {  
+        name 'mekanism'  
+        url 'https://modmaven.dev/'  
+    }  
+      
+    // IndustrialCraft2  
+    maven {  
+        name 'ic2'  
+        url 'https://maven.ic2.player.to/'  
+    }  
+      
+    // BuildCraft  
+    maven {  
+        name 'buildcraft'  
+        url 'https://mod-buildcraft.com/maven/'  
+    }  
+      
+    // JEI  
+    maven {  
+        name 'progwml6'  
+        url 'https://dvs1.progwml6.com/files/maven/'  
+    }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${MC_VERSION}-${forge_version}"
 
-    implementation fg.deobf('mod.dependency:mekanism:9.8.3.390')
-    implementation fg.deobf('mod.dependency:industrialcraft-2:2.8.222-ex112')
-    implementation fg.deobf('mod.dependency:buildcraft-api:7.99.24.8')
-    compileOnly fg.deobf('mod.dependency:biomes-o-plenty:7.0.1.2445')
-    compileOnly fg.deobf('mod.dependency:appliedenergistics2:rv6-stable-7')
-    compileOnly fg.deobf('mod.dependency:redstoneflux:2.1.1.1')
-    compileOnly fg.deobf('mod.dependency:actuallyadditions:r152')
-    compileOnly fg.deobf('mod.dependency:playerapi:1.1')
-    compileOnly fg.deobf('mod.dependency:journeymap:5.7.1')
-    compileOnly fg.deobf('mod.dependency:jei:4.16.1.302:api')
-    runtimeOnly fg.deobf('mod.dependency:jei:4.16.1.302')
+    implementation 'mod.dependency:mekanism:9.8.3.390'
+    implementation 'mod.dependency:industrialcraft-2:2.8.222-ex112'
+    implementation 'mod.dependency:buildcraft-api:7.99.24.8'
+    compileOnly 'mod.dependency:biomes-o-plenty:7.0.1.2445'
+    compileOnly 'mod.dependency:appliedenergistics2:rv6-stable-7'
+    compileOnly 'mod.dependency:redstoneflux:2.1.1.1'
+    compileOnly 'mod.dependency:actuallyadditions:r152'
+    compileOnly 'mod.dependency:playerapi:1.1'
+    compileOnly 'mod.dependency:journeymap:5.7.1'
+    compileOnly 'mod.dependency:jei:4.16.1.302:api'
+    runtimeOnly 'mod.dependency:jei:4.16.1.302'
     
     // Project lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'
@@ -51,8 +80,8 @@ minecraft {
     runs {  
         client {  
             workingDirectory project.file('run')  
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
-            property 'forge.logging.console.level', 'debug'  
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
+            //property 'forge.logging.console.level', 'debug'  
             mods {  
                 galacticraft {  
                     source sourceSets.main  
@@ -61,8 +90,8 @@ minecraft {
         }  
         server {  
             workingDirectory project.file('run')  
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
-            property 'forge.logging.console.level', 'debug'  
+            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
+            //property 'forge.logging.console.level', 'debug'  
             mods {  
                 galacticraft {  
                     source sourceSets.main  
