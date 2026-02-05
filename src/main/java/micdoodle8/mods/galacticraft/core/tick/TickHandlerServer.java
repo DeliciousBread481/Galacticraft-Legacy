@@ -251,7 +251,10 @@ public class TickHandlerServer
 
     public static void scheduleNetworkTick(EnergyNetwork grid)
     {
-        TickHandlerServer.networkTicks.add(grid);
+        if (grid != null)  
+        {  
+            TickHandlerServer.networkTicks.add(grid);  
+        }
     }
 
     public static void removeNetworkTick(EnergyNetwork grid)
@@ -488,7 +491,10 @@ public class TickHandlerServer
                 TickHandlerServer.networkTicks.clear();
                 for (EnergyNetwork grid : pass)
                 {
-                    grid.tickEnd();
+                    if (grid != null)  
+                    {  
+                        grid.tickEnd();  
+                    }
                 }
 
                 if (--maxPasses <= 0)
