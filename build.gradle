@@ -14,6 +14,11 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 repositories {
     mavenCentral()
+
+    flatDir {
+        name 'LocalLibs'
+        dir file('libs')
+    }
     
     // Forge 官方仓库
     maven {
@@ -34,6 +39,11 @@ repositories {
         content {
             includeGroup "curse.maven"
         }
+    }
+
+    // Source: buildcraftapi
+    maven {
+        url 'https://mvnrepository.com/artifact/com.mod-buildcraft/buildcraft-api'
     }
     
     // Progwml6 - JEI 旧版本
@@ -61,8 +71,8 @@ dependencies {
     compileOnly fg.deobf('curse.maven:biomes-o-plenty-220318:2715506')  // 7.0.1.2445
     compileOnly fg.deobf('appeng:appliedenergistics2:rv6-stable-7')
     compileOnly fg.deobf('curse.maven:redstone-flux-270789:2920436')   // 2.1.1.1
-    compileOnly fg.deobf('curse.maven:actually-additions-228404:2846950') // r152
-    compileOnly fg.deobf('curse.maven:player-api-228969:2504317')      // 1.1
+    compileOnly 'curse.maven:actually-additions-1.12.2-r152' // r152
+    compileOnly 'curse.maven:player-api-1.12.2-1.1'   // 1.1
     compileOnly fg.deobf('curse.maven:journeymap-32274:2916002')       // 5.7.1
     
     // JEI
@@ -78,6 +88,9 @@ dependencies {
 
 minecraft {
     mappings channel: 'stable', version: '39-1.12'
+
+    // 添加 Access Transformer 配置
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
     
     runs {
         client {
