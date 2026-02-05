@@ -1,127 +1,105 @@
 plugins {
     id 'java'
     id 'eclipse'
-    id 'org.cadixdev.licenser' version '0.6.1'
-    id 'com.diffplug.spotless' version '6.13.0'
-    id 'net.minecraftforge.gradle' version '6.+'
-    //id 'net.galacticraft.changelog' version '1.0.4'
-    //id 'net.galacticraft.internal.legacy' version '1.0.5'
-    //id 'nexus-publishing' version '2.1'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
 }
 
 group = "dev.galacticraft"
 archivesBaseName = "Galacticraft"
 version = "${mod_version}${version_suffix}"
 
+// 保持 Java 8 以兼容旧版 Minecraft
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 repositories {
     mavenCentral()
+    
+    // Forge 官方仓库
     maven {
-        name 'galacticraft'
-        url 'https://maven.galacticraft.net/repository/legacy-common/'
+        name 'MinecraftForge'
+        url 'https://maven.minecraftforge.net/'
     }
-    // CurseForge Maven
-    maven {  
-        name 'cursemaven'  
-        url 'https://cursemaven.com'  
-    }  
-      
-    // Mekanism  
-    maven {  
-        name 'mekanism'  
-        url 'https://modmaven.dev/'  
-    }  
-      
-    // IndustrialCraft2  
-    maven {  
-        name 'ic2'  
-        url 'https://maven.ic2.player.to/'  
-    }  
-      
-    // BuildCraft  
-    maven {  
-        name 'buildcraft'  
-        url 'https://mod-buildcraft.com/maven/'  
-    }  
-      
-    // JEI  
-    maven {  
-        name 'progwml6'  
-        url 'https://dvs1.progwml6.com/files/maven/'  
+    
+    // ModMaven - 托管 Mekanism、IC2、BuildCraft 等
+    maven {
+        name 'ModMaven'
+        url 'https://modmaven.dev/'
+    }
+    
+    // CurseForge Maven - 用于 Biomes O' Plenty、JourneyMap 等
+    maven {
+        name 'CurseMaven'
+        url 'https://cursemaven.com'
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    
+    // Progwml6 - JEI 旧版本
+    maven {
+        name 'progwml6'
+        url 'https://dvs1.progwml6.com/files/maven/'
+    }
+    
+    // Applied Energistics 2
+    maven {
+        name 'AE2'
+        url 'https://modmaven.dev/'  // AE2 也在 ModMaven
     }
 }
 
 dependencies {
     minecraft "net.minecraftforge:forge:${MC_VERSION}-${forge_version}"
 
-    implementation 'mod.dependency:mekanism:9.8.3.390'
-    implementation 'mod.dependency:industrialcraft-2:2.8.222-ex112'
-    implementation 'mod.dependency:buildcraft-api:7.99.24.8'
-    compileOnly 'mod.dependency:biomes-o-plenty:7.0.1.2445'
-    compileOnly 'mod.dependency:appliedenergistics2:rv6-stable-7'
-    compileOnly 'mod.dependency:redstoneflux:2.1.1.1'
-    compileOnly 'mod.dependency:actuallyadditions:r152'
-    compileOnly 'mod.dependency:playerapi:1.1'
-    compileOnly 'mod.dependency:journeymap:5.7.1'
-    compileOnly 'mod.dependency:jei:4.16.1.302:api'
-    runtimeOnly 'mod.dependency:jei:4.16.1.302'
+    // 核心依赖（使用 fg.deobf 进行反混淆）
+    implementation fg.deobf('mekanism:Mekanism:1.12.2-9.8.3.390')
+    implementation fg.deobf('net.industrial-craft:industrialcraft-2:2.8.222-ex112')
+    implementation fg.deobf('com.mod-buildcraft:buildcraft-api:7.99.24.8')
     
-    // Project lombok
+    // 可选依赖（仅编译期）
+    compileOnly fg.deobf('curse.maven:biomes-o-plenty-220318:2715506')  // 7.0.1.2445
+    compileOnly fg.deobf('appeng:appliedenergistics2:rv6-stable-7')
+    compileOnly fg.deobf('curse.maven:redstone-flux-270789:2920436')   // 2.1.1.1
+    compileOnly fg.deobf('curse.maven:actually-additions-228404:2846950') // r152
+    compileOnly fg.deobf('curse.maven:player-api-228969:2504317')      // 1.1
+    compileOnly fg.deobf('curse.maven:journeymap-32274:2916002')       // 5.7.1
+    
+    // JEI
+    compileOnly fg.deobf('mezz.jei:jei_1.12.2:4.16.1.302:api')
+    runtimeOnly fg.deobf('mezz.jei:jei_1.12.2:4.16.1.302')
+    
+    // Lombok（保持原样）
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 }
 
-minecraft {  
-    mappings channel: 'stable', version: '39-1.12'  
-      
-    runs {  
-        client {  
-            workingDirectory project.file('run')  
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
-            //property 'forge.logging.console.level', 'debug'  
-            mods {  
-                galacticraft {  
-                    source sourceSets.main  
-                }  
-            }  
-        }  
-        server {  
-            workingDirectory project.file('run')  
-            //property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
-            //property 'forge.logging.console.level', 'debug'  
-            mods {  
-                galacticraft {  
-                    source sourceSets.main  
-                }  
-            }  
-        }  
-    }  
-}
-
-spotless {
-	enforceCheck false
-    java {
-        target 'src/*/java/micdoodle8/mods/**/*.java'
-        endWithNewline()
-        trimTrailingWhitespace()
-        removeUnusedImports()
-        indentWithSpaces()
+minecraft {
+    mappings channel: 'stable', version: '39-1.12'
+    
+    runs {
+        client {
+            workingDirectory project.file('run')
+            mods {
+                galacticraft {
+                    source sourceSets.main
+                }
+            }
+        }
+        server {
+            workingDirectory project.file('run')
+            mods {
+                galacticraft {
+                    source sourceSets.main
+                }
+            }
+        }
     }
 }
 
-license {
-    header = project.file('etc/HEADER')
-    properties {
-        company = 'Team Galacticraft'
-        year = Calendar.getInstance().get(Calendar.YEAR);
-    }
-    ignoreFailures = true
-    include '**/*.java'
-}
-
+// 清理时保留 fg_cache 加速重建
 clean {
     def filteredDelete = new HashSet<>()
     for (def toDelete : getDelete()) {
@@ -134,61 +112,10 @@ clean {
     setDelete(filteredDelete)
 }
 
-//tokens {
-//    replace('version', version)
-//}
-
-
-//changelog {
-//	fromTag('4.0.5')
-//}
-
-//maven {
-//	excludeDependencies('forge', 'jei')
-//	artifacts(mavenJar, deobfJar, sourcesJar)
-//}
-
-/*
-modpublishing {
-
-	changelogPath(changelog.changelogFile)
-
-    curseforge('564236') {
-    	if (System.getenv().CI)
-    		apiKey = 'none'
-	    relations {
-	        optional(
-	        	'mekanism',
-	        	'jei', 
-	        	'journeymap',
-	        	'playerapi', 
-	        	'actually-additions',
-	        	'redstone-flux', 
-	        	'applied-energistics-2',
-	        	'biomes-o-plenty', 
-	        	'buildcraft',
-	        	'industrial-craft'
-	        )
-	        incompatible(
-	        	'betterportals' ,
-	        	'vics-modern-warfare-mod'
-	        )
-	    }
-	}
-
-	modrinth('ZnmdXAk2') {
-		if (System.getenv().CI)
-    		token('none')
-		dependencies {
-			// Mekanism
-			optional.version 'KIzASRO5'
-			// JourneyMap
-			optional.version 'vacvhRKp'
-		}
-	}
-}
-*/
-
 tasks.withType(GenerateModuleMetadata).configureEach {
     enabled = false
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
