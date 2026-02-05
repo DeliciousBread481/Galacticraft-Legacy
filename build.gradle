@@ -26,9 +26,9 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${MC_VERSION}-${forge_version}"
 
-    compileRequired fg.deobf('mod.dependency:mekanism:9.8.3.390')
-    compileRequired fg.deobf('mod.dependency:industrialcraft-2:2.8.222-ex112')
-    compileRequired fg.deobf('mod.dependency:buildcraft-api:7.99.24.8')
+    implementation fg.deobf('mod.dependency:mekanism:9.8.3.390')
+    implementation fg.deobf('mod.dependency:industrialcraft-2:2.8.222-ex112')
+    implementation fg.deobf('mod.dependency:buildcraft-api:7.99.24.8')
     compileOnly fg.deobf('mod.dependency:biomes-o-plenty:7.0.1.2445')
     compileOnly fg.deobf('mod.dependency:appliedenergistics2:rv6-stable-7')
     compileOnly fg.deobf('mod.dependency:redstoneflux:2.1.1.1')
@@ -43,6 +43,33 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+minecraft {  
+    mappings channel: 'stable', version: '39-1.12'  
+      
+    runs {  
+        client {  
+            workingDirectory project.file('run')  
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
+            property 'forge.logging.console.level', 'debug'  
+            mods {  
+                galacticraft {  
+                    source sourceSets.main  
+                }  
+            }  
+        }  
+        server {  
+            workingDirectory project.file('run')  
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'  
+            property 'forge.logging.console.level', 'debug'  
+            mods {  
+                galacticraft {  
+                    source sourceSets.main  
+                }  
+            }  
+        }  
+    }  
 }
 
 spotless {
@@ -78,20 +105,21 @@ clean {
     setDelete(filteredDelete)
 }
 
-tokens {
-    replace('version', version)
-}
-
-changelog {
-	fromTag('4.0.5')
-}
-
-maven {
-	excludeDependencies('forge', 'jei')
-	artifacts(mavenJar, deobfJar, sourcesJar)
-}
+//tokens {
+//    replace('version', version)
+//}
 
 
+//changelog {
+//	fromTag('4.0.5')
+//}
+
+//maven {
+//	excludeDependencies('forge', 'jei')
+//	artifacts(mavenJar, deobfJar, sourcesJar)
+//}
+
+/*
 modpublishing {
 
 	changelogPath(changelog.changelogFile)
@@ -130,6 +158,7 @@ modpublishing {
 		}
 	}
 }
+*/
 
 tasks.withType(GenerateModuleMetadata).configureEach {
     enabled = false
