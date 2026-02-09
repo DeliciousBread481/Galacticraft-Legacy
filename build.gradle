@@ -1,0 +1,260 @@
+import com.gtnewhorizons.retrofuturagradle.mcp.InjectTagsTask
+import org.jetbrains.gradle.ext.Gradle
+import org.codehaus.groovy.runtime.MethodClosure
+import groovy.text.SimpleTemplateEngine
+
+plugins {
+    id "org.jetbrains.gradle.plugin.idea-ext" version "1.3"
+    id "com.gtnewhorizons.retrofuturagradle" version "1.4.9"
+    id "io.github.CDAGaming.cursegradle" version "1.6.1"
+    id "com.modrinth.minotaur" version "2.+"
+    id 'java'
+    id 'eclipse'
+    id 'maven-publish'
+//    id 'org.cadixdev.licenser' version '0.6.1'
+    id 'com.diffplug.spotless' version '6.13.0'
+}
+
+ext.interpolate = this.&interpolate as MethodClosure
+
+String interpolate(String value) {
+    if (value.startsWith('${{') && value.endsWith('}}')) {
+        value = value.substring(3, value.length() - 2)
+        Binding newBinding = new Binding(this.binding.getVariables())
+        newBinding.setProperty('it', this)
+        return new GroovyShell(this.getClass().getClassLoader(), newBinding).evaluate(value)
+    }
+    if (value.contains('${')) {
+        return new SimpleTemplateEngine().createTemplate(value).make(project.properties).toString()
+    }
+    return value
+}
+
+version = "${mod_version}${version_suffix}"
+group = "dev.galacticraft"
+
+base {
+    archivesName = "Galacticraft"
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+}
+
+configurations {
+    embed
+    implementation.extendsFrom(embed)
+}
+
+minecraft {
+    mcVersion.set(mc_version)
+
+    mcpMappingChannel.set(mapping_channel)
+    mcpMappingVersion.set(mapping_version)
+
+    useDependencyAccessTransformers.set(true)
+
+    if (project.hasProperty("username")) {
+        username.set(project.username)
+    } else {
+        username.set("Developer")
+    }
+
+    // Add various JVM arguments here for runtime
+    def args = ["-ea:" + group]
+
+    if (project.hasProperty("use_mixin") && use_mixin.toBoolean()) {
+        args << "-Dmixin.debug=true"
+        args << "-Dmixin.debug.verbose=true"
+        args << "-Dmixin.hotSwap=true"
+        args << "-Dmixin.checks.interfaces=true"
+        args << "-Dmixin.debug.export=true"
+        args << "-Dfml.coreMods.load=micdoodle8.mods.miccore.MicdoodlePlugin"
+    }
+    extraRunJvmArguments.addAll(args)
+
+    if (file("tags.properties").exists()) {
+        Properties props = new Properties().tap {  it.load(file("tags.properties").newInputStream()); it }
+        if (!props.isEmpty()) {
+            injectedTags.set(props.collectEntries { k, v -> [(k): interpolate(v)] })
+        }
+    }
+}
+
+// Adds Access Transformer files to tasks
+def fileLocation = file("${projectDir}/src/main/resources/META-INF/accesstransformer.cfg")
+if (fileLocation.exists()) {
+    tasks.deobfuscateMergedJarToSrg.accessTransformerFiles.from(fileLocation)
+    tasks.srgifyBinpatchedJar.accessTransformerFiles.from(fileLocation)
+} else {
+    throw new GradleException("Access Transformer file [$fileLocation] does not exist!")
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    flatDir dirs: "$projectDir/deps"
+}
+
+jar {
+    manifest {
+        attributes("Implementation-Title": "Galacticraft",
+                "Implementation-Version": "4.0.7",
+                "Specification-Title": "Galacticraft",
+                "Specification-Vendor": "TeamGalacticraft",
+                "Specification-Version": "4.0.7",
+                "Implementation-Vendor": "TeamGalacticraft",
+                "FMLAT": "accesstransformer.cfg",
+                "FMLCorePluginContainsFMLMod": true,
+                "FMLCorePlugin": "micdoodle8.mods.miccore.MicdoodlePlugin",
+                "Built-On-Minecraft": "1.12.2",
+                "Built-On-Forge": "14.23.5.2860",
+                "Built-On-Mapping": "stable-39-1.12",
+                "Built-Using": "ForgeGradle: 5.+")
+    }
+}
+
+dependencies {
+    compileOnly( (':Mekanism-1.12.2:9.8.3.390') )
+    compileOnly( (':industrialcraft-2:2.8.222-ex112') )
+    compileOnly( (':buildcraft-api:7.99.24.8') )
+    compileOnly (':BiomesOPlenty-1.12.2:7.0.1.2445-universal')
+    compileOnly (':appliedenergistics2:rv6-stable-7')
+    compileOnly (':RedstoneFlux-1.12:2.1.1.1-universal')
+    compileOnly (':ActuallyAdditions-1.12.2:r152')
+    compileOnly (':PlayerAPI-1.12.2:1.1')
+    compileOnly (':journeymap-1.12.2:5.7.1')
+    compileOnly (':jei_1.12.2:4.16.1.302:api')
+    runtimeOnly (':jei_1.12.2:4.16.1.302')
+
+    // Project lombok
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+tasks.named("injectTags", InjectTagsTask).configure {
+    onlyIf {
+        return !it.getTags().get().isEmpty()
+    }
+    it.outputClassName.set("${group}.core.Tags")
+}
+
+idea {
+    module {
+        inheritOutputDirs = true
+    }
+    project {
+        settings {
+            runConfigurations {
+                "1. Run Client"(Gradle) {
+                    taskNames = ["runClient"]
+                }
+                "2. Run Server"(Gradle) {
+                    taskNames = ["runServer"]
+                }
+            }
+            compiler.javac {
+                afterEvaluate {
+                    javacAdditionalOptions = "-encoding utf8"
+                    moduleJavacAdditionalOptions = [
+                            (project.name + ".main"): tasks.compileJava.options.compilerArgs.collect { '"' + it + '"' }.join(' ')
+                    ]
+                }
+            }
+        }
+    }
+}
+
+spotless {
+    enforceCheck false
+    java {
+        target 'src/*/java/micdoodle8/mods/**/*.java'
+        endWithNewline()
+        trimTrailingWhitespace()
+        removeUnusedImports()
+        indentWithSpaces()
+    }
+}
+
+//license {
+//    header = project.file('etc/HEADER')
+//    properties {
+//        company = 'Team Galacticraft'
+//        year = "2023"
+//    }
+//    ignoreFailures = true
+//    include '**/*.java'
+//}
+
+clean {
+    def filteredDelete = new HashSet<>()
+    for (def toDelete : getDelete()) {
+        for (def f : file(toDelete).listFiles()) {
+            if (f.getName() != "fg_cache") {
+                filteredDelete.add(f)
+            }
+        }
+    }
+    setDelete(filteredDelete)
+}
+
+//tokens {
+//    replace('version', version)
+//}
+
+//changelog {
+//	fromTag('4.0.5')
+//}
+//
+//maven {
+////	excludeDependencies('forge', 'jei')
+////	artifacts(mavenJar, deobfJar, sourcesJar)
+//}
+
+//modpublishing {
+//
+//	changelogPath(changelog.changelogFile)
+//
+//    curseforge('564236') {
+//    	if (System.getenv().CI)
+//    		apiKey = 'none'
+//	    relations {
+//	        optional(
+//	        	'mekanism',
+//	        	'jei',
+//	        	'journeymap',
+//	        	'playerapi',
+//	        	'actually-additions',
+//	        	'redstone-flux',
+//	        	'applied-energistics-2',
+//	        	'biomes-o-plenty',
+//	        	'buildcraft',
+//	        	'industrial-craft'
+//	        )
+//	        incompatible(
+//	        	'betterportals' ,
+//	        	'vics-modern-warfare-mod'
+//	        )
+//	    }
+//	}
+//
+//	modrinth('ZnmdXAk2') {
+//		if (System.getenv().CI)
+//    		token('none')
+//		dependencies {
+//			// Mekanism
+//			optional.version 'KIzASRO5'
+//			// JourneyMap
+//			optional.version 'vacvhRKp'
+//		}
+//	}
+//}
+
+tasks.withType(GenerateModuleMetadata).configureEach {
+    enabled = false
+}
