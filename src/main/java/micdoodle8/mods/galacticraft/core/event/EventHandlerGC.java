@@ -976,9 +976,14 @@ public class EventHandlerGC
                         SoundEvent soundEvent = SoundEvent.REGISTRY.getObject(event.getResultSound().getSoundLocation());
                         if (soundEvent != null)
                         {
-                            ISound newSound = new PositionedSoundRecord(soundEvent, SoundCategory.NEUTRAL, newVolume, pitch, x, y, z);
-                            event.getManager().playSound(newSound);
-                            event.setResultSound(null);
+                            ISound newSound = new PositionedSoundRecord(soundEvent, SoundCategory.NEUTRAL, newVolume, pitch, x, y, z);  
+                            try {  
+                                newSound.getVolume();  
+                                event.getManager().playSound(newSound);  
+                                event.setResultSound(null);  
+                            } catch (NullPointerException e) {  
+                                GalacticraftCore.logger.warn("Failed to play reduced volume sound for " + event.getName() + " - sound resource may be missing");  
+                            }
                         }
                         else
                         {
