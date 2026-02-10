@@ -976,7 +976,7 @@ public class EventHandlerGC
                         SoundEvent soundEvent = SoundEvent.REGISTRY.getObject(event.getResultSound().getSoundLocation());
                         if (soundEvent != null)
                         {
-                            ISound newSound = new PositionedSoundRecord(soundEvent, SoundCategory.NEUTRAL, newVolume, pitch, x, y, z);  
+                            ISound newSound = new SafePositionedSoundRecord(soundEvent, SoundCategory.NEUTRAL, newVolume, pitch, x, y, z);
                             try {  
                                 newSound.getVolume();  
                                 event.getManager().playSound(newSound);  
